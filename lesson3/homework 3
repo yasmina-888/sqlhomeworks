@@ -1,0 +1,115 @@
+1. Define and explain the purpose of BULK INSERT in SQL Server
+BULK INSERT is a Transact-SQL command used to import large volumes of data from a data file (like a .txt, .csv, etc.) directly into a SQL Server table.
+
+Purpose:
+
+High-performance data loading
+
+Ideal for importing data from flat files
+
+Often used in data warehousing, ETL (Extract, Transform, Load), and integration processes
+
+Create table Patients (Id int,Name varchar(80),Age int, Sex varchar(50))
+Bulk insert Patients
+from 'C:\Users\user\Desktop\Patients.txt'
+
+with
+(fieldterminator= ',',
+rowterminator ='\n',
+firstrow = 2)
+select*from Patients
+
+
+
+
+2. List four file formats that can be imported into SQL Server
+CSV (Comma-Separated Values)
+
+TXT (Plain Text File)
+
+XML (Extensible Markup Language)
+
+JSON (JavaScript Object Notation)
+
+3. Create table Products(ProductID INT PRIMARY KEY,ProductName VARCHAR(50),Price DECIMAL(10,2))
+4. Insert into table Products (ProductID, ProductName, Price) values
+(1, 'Chair', 22.00),
+(2, 'Table', 399.49),
+(3, 'smart Tv', 899.95)
+
+5.NOT NULL: Ensures that a column must contain a value; it cannot be left blank during insert or update.
+
+6. alter table Products
+add constraint UQ_ProductName unique (ProductName);
+7. 
+-- This query retrieves all products priced above $500
+SELECT * FROM Products
+WHERE Price > 500;
+8. Add CategoryID column to the Products table
+
+alter table Products
+add CategoryID int
+
+create table Categories (CategoryID int,CategoryName varchar(50) unique)
+
+10.The IDENTITY property is used to create auto-incrementing numeric columns. It automatically generates a unique value for each new row inserted into the table, typically used for primary keys.
+
+Purpose:
+
+Simplifies unique key generation
+
+Avoids manual input of primary keys
+
+Ensures uniqueness without needing sequences or manual tracking
+
+1. Bulk insert Products from "C:\Users\user\Desktop\products.txt"
+with
+(fieldterminator= ',',
+rowterminator ='\n',
+firstrow = 1)
+
+2. alter table Products
+add constraint FK_Products_Categories
+foreign key (CategoryID) references Categories(CategoryID)
+
+3.primary key must be unique and cannot contain null values. only one primary key per table,identifes each record uniquely
+Unique key must be unique,can contain one null value. can have multiple unique keys and enforces uniqueness on a column
+
+4. alter table Products
+add constraint CHK_Price_Positive check (Price > 0)
+
+5. alter table Products
+add Stock int not null default 0
+
+6. select ProductID, ProductName, isnull(Price, 0) as Price, Stock
+from Products 
+
+7. A FOREIGN KEY enforces referential integrity by ensuring that values in one table must match values in another (parent) table.
+
+ Purpose:
+Links records between tables
+
+Prevents orphaned records (e.g., Products referencing non-existent Categories)
+
+Ensures data consistency across related tables
+
+foreign key (CategoryID) references Categories(CategoryID)
+
+1. create table Customers (CustomerID int primary key, CustomerName varchar(50),Age int check (Age >= 18)
+
+2. create table students(Id int identity (100,10) primary key, name varchar(50), Surname varchar(50))
+
+3. create table OrderDetails (OrderID int,ProductID int,Quantity int,PRIMARY KEY (OrderID, ProductID))
+
+4. SELECT ISNULL(Price, 0) FROM Products
+SELECT COALESCE(Price, DiscountPrice, 0) FROM Products
+
+5.Create table Employees (EmpID Int primary key, Name varchar(30),Email varchar(100) unique) 
+
+6.CREATE TABLE Orders (OrderID INT PRIMARY KEY,CustomerID INT,OrderDate DATE,CONSTRAINT FK_Orders_Customers
+    FOREIGN KEY (CustomerID)
+    REFERENCES Customers(CustomerID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+
+
