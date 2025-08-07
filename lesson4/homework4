@@ -1,0 +1,100 @@
+  ----1----
+  select top 5* from  employee
+
+ drop table products
+
+ 
+
+
+  CREATE TABLE products (
+    product_id INT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE,
+    category VARCHAR(50),
+    price DECIMAL(10, 2))
+
+
+INSERT INTO products (product_id, name, category, price) VALUES
+(1, 'Laptop', 'Electronics', 999.99),
+(2, 'Desk Chair', 'Furniture', 199.99),
+(3, 'Water Bottle', 'Accessories', 14.99),
+(4, 'Smartphone', 'Electronics', 699.99);
+----2---
+  select distinct Category from Products;
+  ---3---
+  select*from Products 
+where Price > 100
+---4--
+select*from Customers 
+where FirstName LIKE 'A%'
+ ---5--
+select*from Products 
+order by Price ASC
+---6---
+select*from Employees 
+where Salary >= 60000 and Department = 'HR'
+---7---
+select ISNULL('Email', 'no') AS Email, * from Employees
+---8---
+select*from Products 
+where Price BETWEEN 50 AND 100
+--9--
+select distinct Category, ProductName from Products
+--10--
+select distinct Category, ProductName from Products 
+order by ProductName desc
+
+--1--
+select top 10 * from Products
+order by price desc
+--2--
+SELECT EmployeeID, COALESCE(FirstName, LastName) AS DisplayName
+FROM Employees
+--3--
+ select distinct Category, Price from Products
+ --4--
+select*from Employees
+where(Age BETWEEN 30 AND 40) OR Department = 'Marketing'
+--6--
+select*from Products
+WHERE Price <= 1000 AND Stock > 50
+order by Stock ASC
+--7--
+select*from Products
+where ProductName LIKE '%e%'
+--8--
+select*from Employees
+where Department IN ('HR', 'IT', 'Finance')
+--9--
+select*from Customers
+ORDER BY City ASC, PostalCode DESC
+
+
+--1--
+
+select top(5) ProductID, SUM(SaleAmount) AS TotalSales from Sales
+group by ProductID
+order by TotalSales DESC;
+--2--
+select EmployeeID,
+    ISNULL(FirstName, '') + ' ' + ISNULL(LastName, '') AS FullName,
+    DepartmentName,salary from employees
+--3--
+select distinct Category, ProductName, Price from Products
+WHERE Price > 50;
+--4--
+select ProductID, ProductName, Price from Products
+where Price < 0.1 * (SELECT AVG(Price) FROM Products);
+--5--
+select*from Employees
+WHERE Age < 30
+  AND DepartmentName IN ('HR', 'IT');
+--6--
+select*from Customers
+WHERE Email LIKE '%@gmail.com%';
+--7--
+select*from Employees
+WHERE Salary > ALL (select salary from) Employees
+    WHERE DepartmentName = 'Sales');
+--8--
+select*from orders
+WHERE OrderDate BETWEEN DATEADD(DAY, -180, GETDATE()) AND GETDATE()
