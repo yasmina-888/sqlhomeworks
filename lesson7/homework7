@@ -1,0 +1,187 @@
+--1--
+Minimum price of a product:
+
+select MIN(Price) AS MinPrice FROM Products
+
+
+--2--
+SELECT MAX(Salary) AS MaxSalary FROM Employees
+
+--3--
+Count of rows in Customers:
+select count(*) AS TotalCustomers FROM Customers
+
+--4--
+Count of unique product categories:
+select count(DISTINCT Category) AS UniqueCategories FROM Products
+--5--
+Total sales for product with id 7:
+select sum(SaleAmount) AS TotalSales
+from Sales
+where ProductID = 7
+
+--6--
+Average age of employees:
+
+select avg (Age) AS AverageAge FROM Employees;
+
+
+--7--
+Count of employees in each department:
+
+select DepartmentName, COUNT(*) AS EmployeeCount
+from Employees
+group by DepartmentName;
+
+
+--8--
+Min and Max price grouped by Category:
+
+select Category,
+min(Price) AS MinPrice,
+max(Price) AS MaxPrice
+from Products
+group by Category;
+
+--9--
+Total sales per Customer:
+
+select CustomerID, SUM(SaleAmount) AS TotalSales
+from Sales
+group by CustomerID;
+
+--10--
+Departments having more than 5 employees:
+
+select DepartmentName, COUNT(*) AS EmployeeCount
+from Employees
+group by DepartmentName
+having count(*) > 5;
+
+--1--
+Total and average sales for each product category:
+
+select P.Category,
+sum(S.SaleAmount) AS TotalSales,
+ avg(S.SaleAmount) AS AvgSales
+from Sales S
+join Products P ON S.ProductID = P.ProductID
+group by P.Category
+
+--2--
+Count of employees in the HR department:
+
+select count(*) AS HREmployeeCount
+from Employees
+where DepartmentName = 'HR';
+
+--3--
+Highest and lowest Salary by department:
+
+select DepartmentName,
+ max(Salary) AS MaxSalary,
+  min(Salary) AS MinSalary
+from Employees
+group by DepartmentName
+
+--4--
+Average salary per Department:
+
+select DepartmentName, AVG(Salary) AS AvgSalary
+from Employees
+group by DepartmentName
+
+--5--
+avg salary and count(*) per department:
+
+select DepartmentName,
+avg(Salary) AS AvgSalary,
+count(*) AS EmployeeCount
+from Employees
+group by DepartmentName
+
+--6--
+Product categories with average price > 400:
+
+select Category, AVG(Price) AS AvgPrice
+from Products
+group by Category
+having avg(Price) > 400
+
+--7--
+Total sales for each year:
+
+select year(SaleDate) AS SaleYear,
+sum(SaleAmount) AS TotalSales
+from Sales
+group by year(SaleDate)
+
+--8--
+Customers who placed at least 3 orders:
+
+select CustomerID, COUNT(*) AS OrderCount
+from Orders
+GROUP BY CustomerID
+HAVING COUNT(*) >= 3
+
+--9--
+Departments with average salary > 60000:
+
+select DepartmentName,
+avg(Salary) AS AvgSalary
+from Employees
+group by DepartmentName
+having avg(Salary) > 60000;
+
+
+--1--
+Average price per category > 150:
+
+select Category, AVG(Price) AS AvgPrice
+from Products
+group by Category
+having avg(Price) > 150
+
+--2--
+Total sales per customer > 1500:
+
+selecT CustomerID, SUM(SaleAmount) AS TotalSales
+from Sales
+group by CustomerID
+having sum(SaleAmount) > 1500
+
+--3--
+Total and avg salary per dept, filter avg > 65000:
+
+select DepartmentName,
+sum(Salary) AS TotalSalary,
+avg(Salary) AS AvgSalary
+from Employees
+group by DepartmentName
+having avg(Salary) > 65000
+
+--4--
+Total amount for orders with freight > 50 per customer + least purchase:
+🔴 Note: No Freight column exists in the provided Orders table. If you meant TotalAmount > 50, here is a revised version:
+
+
+select O.CustomerID,
+ sum(CASE WHEN O.TotalAmount > 50 THEN O.TotalAmount ELSE 0 END) AS TotalLargeOrders,
+ min(O.TotalAmount) AS LeastPurchase
+from Orders O
+group by O.CustomerID
+
+--5--
+Monthly sales + unique product count per month, filter months with at least 2 unique products:
+
+    select YEAR(OrderDate) AS SaleYear, MONTH(OrderDate) AS SaleMonth,SUM(TotalAmount) AS TotalSales,
+    COUNT(DISTINCT ProductID) AS UniqueProducts
+from Orders
+group by year(OrderDate), MONTH(OrderDate)
+having count(DISTINCT ProductID) >= 2
+
+--6--
+MIN and MAX order quantity per year:
+select YEAR(OrderDate) AS OrderYear,MIN(Quantity) AS MinQty,MAX(Quantity) AS MaxQty
+from Orders
+group by YEAR(OrderDate)
