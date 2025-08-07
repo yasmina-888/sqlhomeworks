@@ -1,0 +1,73 @@
+
+--1--
+select ProductName as name from Products;
+--2--
+select*from Customers AS Client;
+--3--
+select ProductName FROM Products
+union
+select ProductName from  Products_Discounted;
+--4--
+select ProductName FROM Products
+intersect 
+select ProductName FROM Products_Discounted;
+--5--
+ Select distinct FirstName, LastName, Country FROM Customers;
+--6--
+select ProductName, Price,
+case 
+when Price > 1000 then 'High'
+else 'Low'end as PriceCategory from Products;
+--7--
+select ProductName, StockQuantity,
+IIF(StockQuantity > 100, 'Yes', 'No') AS HighStock
+from Products_Discounted;
+
+
+--1--
+select ProductName from Products
+union 
+select ProductName FROM Products_Discounted;
+--2--
+
+select ProductName from Products
+except
+select  ProductName FROM Products_Discounted;
+--3--
+select ProductName, Price,
+IIF(Price > 1000, 'Expensive', 'Affordable') AS PriceLevel
+from Products
+--4--
+-- Example structure
+-- CREATE TABLE Employees (EmployeeID INT, Name VARCHAR(100), Age INT, Salary DECIMAL(10, 2), Department VARCHAR(50));
+
+select*from Employees
+where Age < 25 OR Salary > 60000;
+--5--
+UPDATE Employees
+SET Salary = Salary * 1.10
+WHERE Department = 'HR' OR EmployeeID = 5;
+
+
+--1--
+select SaleID, SaleAmount,
+case
+when SaleAmount > 500 THEN 'Top Tier'
+when SaleAmount BETWEEN 200 AND 500 THEN 'Mid Tier'
+else 'Low Tier'
+end as SaleTier
+from Sales;
+
+--2--
+select distinct CustomerID from Orders
+except
+select CustomerID FROM Sales;
+
+--3--
+select CustomerID, Quantity,
+case
+when Quantity = 1 THEN '3%'
+when Quantity BETWEEN 2 AND 3 THEN '5%'
+else '7%'
+end as DiscountPercentage
+from Orders
