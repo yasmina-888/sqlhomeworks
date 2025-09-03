@@ -1,0 +1,195 @@
+🟢 Easy-Level Tasks
+
+List all combinations of product names and supplier names.
+
+SELECT Products.ProductName, Suppliers.SupplierName
+FROM Products
+JOIN Suppliers ON Products.SupplierID = Suppliers.SupplierID;
+
+
+Get all combinations of departments and employees.
+
+SELECT Employees.Name, Departments.DepartmentName
+FROM Employees
+JOIN Departments ON Employees.DepartmentID = Departments.DepartmentID;
+
+
+List only the combinations where the supplier actually supplies the product.
+
+SELECT Suppliers.SupplierName, Products.ProductName
+FROM Products
+JOIN Suppliers ON Products.SupplierID = Suppliers.SupplierID;
+
+
+List customer names and their order IDs.
+
+SELECT Customers.FirstName, Customers.LastName, Orders.OrderID
+FROM Orders
+JOIN Customers ON Orders.CustomerID = Customers.CustomerID;
+
+
+Get all combinations of students and courses.
+Assuming you have a Courses and Students table, here’s a general approach:
+
+SELECT Students.StudentName, Courses.CourseName
+FROM Students
+JOIN Enrollments ON Students.StudentID = Enrollments.StudentID
+JOIN Courses ON Enrollments.CourseID = Courses.CourseID;
+
+
+Get product names and orders where product IDs match.
+
+SELECT Products.ProductName, Orders.OrderID
+FROM Orders
+JOIN Products ON Orders.ProductID = Products.ProductID;
+
+
+List employees whose DepartmentID matches the department.
+
+SELECT Employees.Name
+FROM Employees
+WHERE Employees.DepartmentID = Departments.DepartmentID;
+
+
+List student names and their enrolled course IDs.
+
+SELECT Students.StudentName, Enrollments.CourseID
+FROM Enrollments
+JOIN Students ON Enrollments.StudentID = Students.StudentID;
+
+
+List all orders that have matching payments.
+
+SELECT Orders.OrderID, Payments.PaymentID
+FROM Orders
+JOIN Payments ON Orders.OrderID = Payments.OrderID;
+
+
+Show orders where product price is more than 100.
+
+SELECT Orders.OrderID, Products.ProductName
+FROM Orders
+JOIN Products ON Orders.ProductID = Products.ProductID
+WHERE Products.Price > 100;
+
+🟡 Medium-Level Tasks
+
+List employee names and department names where department IDs are not equal.
+
+SELECT Employees.Name, Departments.DepartmentName
+FROM Employees
+JOIN Departments ON Employees.DepartmentID != Departments.DepartmentID;
+
+
+Show orders where ordered quantity is greater than stock quantity.
+
+SELECT Orders.OrderID, Orders.Quantity, Products.ProductName
+FROM Orders
+JOIN Products ON Orders.ProductID = Products.ProductID
+WHERE Orders.Quantity > Products.StockQuantity;
+
+
+List customer names and product IDs where sale amount is 500 or more.
+Assuming Sales table exists:
+
+SELECT Customers.FirstName, Customers.LastName, Sales.ProductID
+FROM Sales
+JOIN Customers ON Sales.CustomerID = Customers.CustomerID
+WHERE Sales.Amount >= 500;
+
+
+List student names and course names they’re enrolled in.
+
+SELECT Students.StudentName, Courses.CourseName
+FROM Enrollments
+JOIN Students ON Enrollments.StudentID = Students.StudentID
+JOIN Courses ON Enrollments.CourseID = Courses.CourseID;
+
+
+List product and supplier names where supplier name contains “Tech”.
+
+SELECT Products.ProductName, Suppliers.SupplierName
+FROM Products
+JOIN Suppliers ON Products.SupplierID = Suppliers.SupplierID
+WHERE Suppliers.SupplierName LIKE '%Tech%';
+
+
+Show orders where payment amount is less than total amount.
+
+SELECT Orders.OrderID, Orders.TotalAmount, Payments.Amount
+FROM Orders
+JOIN Payments ON Orders.OrderID = Payments.OrderID
+WHERE Payments.Amount < Orders.TotalAmount;
+
+
+Get the Department Name for each employee.
+
+SELECT Employees.Name, Departments.DepartmentName
+FROM Employees
+JOIN Departments ON Employees.DepartmentID = Departments.DepartmentID;
+
+
+Show products where category is either 'Electronics' or 'Furniture'.
+
+SELECT ProductName
+FROM Products
+WHERE Category IN ('Electronics', 'Furniture');
+
+
+Show all sales from customers who are from 'USA'.
+
+SELECT Sales.ProductID, Sales.Amount
+FROM Sales
+JOIN Customers ON Sales.CustomerID = Customers.CustomerID
+WHERE Customers.Country = 'USA';
+
+
+List orders made by customers from 'Germany' and order total > 100.
+
+SELECT Orders.OrderID, Orders.TotalAmount
+FROM Orders
+JOIN Customers ON Orders.CustomerID = Customers.CustomerID
+WHERE Customers.Country = 'Germany' AND Orders.TotalAmount > 100;
+
+🔴 Hard-Level Tasks
+
+List all pairs of employees from different departments.
+
+SELECT E1.Name AS Employee1, E2.Name AS Employee2
+FROM Employees E1
+JOIN Employees E2 ON E1.DepartmentID != E2.DepartmentID
+WHERE E1.EmployeeID < E2.EmployeeID;
+
+
+List payment details where the paid amount is not equal to (Quantity × Product Price).
+
+SELECT Payments.PaymentID, Payments.Amount, Orders.Quantity, Products.Price
+FROM Payments
+JOIN Orders ON Payments.OrderID = Orders.OrderID
+JOIN Products ON Orders.ProductID = Products.ProductID
+WHERE Payments.Amount != Orders.Quantity * Products.Price;
+
+
+Find students who are not enrolled in any course.
+
+SELECT Students.StudentName
+FROM Students
+LEFT JOIN Enrollments ON Students.StudentID = Enrollments.StudentID
+WHERE Enrollments.StudentID IS NULL;
+
+
+List employees who are managers of someone, but their salary is less than or equal to the person they manage.
+
+SELECT E1.Name AS Manager, E2.Name AS Employee
+FROM Employees E1
+JOIN Employees E2 ON E1.EmployeeID = E2.ManagerID
+WHERE E1.Salary <= E2.Salary;
+
+
+List customers who have made an order, but no payment has been recorded for it.
+
+SELECT DISTINCT Customers.FirstName, Customers.LastName
+FROM Customers
+JOIN Orders ON Customers.CustomerID = Orders.CustomerID
+LEFT JOIN Payments ON Orders.OrderID = Payments.OrderID
+WHERE Payments.PaymentID IS NULL
