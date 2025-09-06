@@ -1,0 +1,192 @@
+SELECT DISTINCT s1.CustomerName
+FROM #Sales s1
+WHERE EXISTS (
+    SELECT 1
+    FROM #Sales s2
+    WHERE MONTH(s2.SaleDate) = 3 AND YEAR(s2.SaleDate) = 2024 AND s2.CustomerName = s1.CustomerName)
+ 2. Product with highest total sales revenue
+
+SELECT TOP 1 Product, SUM(Quantity * Price) AS TotalRevenue
+FROM #Sales
+GROUP BY Product
+ORDER BY TotalRevenue DESC;
+ 3. Second highest sale amount
+
+SELECT MAX(SaleAmount) AS SecondHighest
+FROM (
+    SELECT Quantity * Price AS SaleAmount
+    FROM #Sales
+) AS sales
+WHERE SaleAmount < (
+    SELECT MAX(Quantity * Price) FROM #Sales
+);
+ 4. Total quantity of products sold per month
+
+SELECT 
+    MONTH(SaleDate) AS SaleMonth,
+    SUM(Quantity) AS TotalQuantity
+FROM #Sales
+GROUP BY MONTH(SaleDate);
+ 5. Customers who bought same products as others using EXISTS
+
+SELECT DISTINCT s1.CustomerName
+FROM #Sales s1
+WHERE EXISTS (
+    SELECT 1
+    FROM #Sales s2
+    WHERE s2.Product = s1.Product AND s2.CustomerName <> s1.CustomerName
+);
+6. Fruit count per person (pivot-style)
+
+SELECT
+    Name,
+    SUM(CASE WHEN Fruit = 'Apple' THEN 1 ELSE 0 END) AS Apple,
+    SUM(CASE WHEN Fruit = 'Orange' THEN 1 ELSE 0 END) AS Orange,
+    SUM(CASE WHEN Fruit = 'Banana' THEN 1 ELSE 0 END) AS Banana
+FROM Fruits
+GROUP BY Name;
+ 7. Older people with younger ones in family (transitive closure)
+
+WITH FamilyCTE AS (
+    SELECT ParentId AS PID, ChildID AS CHID
+    FROM Family
+    UNION ALL
+    SELECT f.ParentId, c.CHID
+    FROM Family f
+    JOIN FamilyCTE c ON f.ChildID = c.PID
+)
+SELECT DISTINCT PID, CHID
+FROM FamilyCTE
+ORDER BY PID, CHID;
+ 8. Customers who had delivery to CA → show TX orders
+
+SELECT *
+FROM #Orders o
+WHERE DeliveryState = 'TX'
+  AND EXISTS (
+      SELECT 1
+      FROM #Orders o2
+      WHERE o2.CustomerID = o.CustomerID AND o2.DeliveryState = 'CA'
+  );
+ 9. Insert name from address if missing
+
+UPDATE #residents
+SET fullname = 
+    SUBSTRING(address, CHARINDEX('name=', address) + 5, 
+    CHARINDEX(' ', address + ' ', CHARINDEX('name=', address) + 5) - CHARINDEX('name=', address) - 5)
+WHERE fullname NOT IN (SELECT fullname FROM #residents WHERE address LIKE '%name=%');
+ 10. Routes from Tashkent to Khorezm (cheapest & most expensive)
+
+-- Path 1: Tashkent → Samarkand → Khorezm
+SELECT 'Tashkent - Samarkand - Khorezm' AS Route,
+       (SELECT Cost FROM #Routes WHERE DepartureCity = 'Tashkent' AND ArrivalCity = 'Samarkand') +
+       (SELECT Cost FROM #Routes WHERE DepartureCity = 'Samarkand' AND ArrivalCity = 'Khorezm') AS Cost
+
+UNION ALL
+
+-- Path 2: Tashkent → Jizzakh → Samarkand → Bukhoro → Khorezm
+SELECT 'Tashkent - Jizzakh - Samarkand - Bukhoro - Khorezm' AS Route,
+       (SELECT Cost FROM #Routes WHERE DepartureCity = 'Tashkent' AND ArrivalCity = 'Jizzakh') +
+       (SELECT Cost FROM #Routes WHERE DepartureCity = 'Jizzakh' AND ArrivalCity = 'Samarkand') +
+       (SELECT Cost FROM #Routes WHERE DepartureCity = 'Samarkand' AND ArrivalCity = 'Bukhoro') +
+       (SELECT Cost FROM #Routes WHERE DepartureCity = 'Bukhoro' AND ArrivalCity = 'Khorezm');
+ 11. Rank products after each 'Product' marker
+
+WITH Ranked AS (
+    SELECT *, 
+        SUM(CASE WHEN Vals = 'Product' THEN 1 ELSE 0 END) OVER (ORDER BY ID) AS GroupID
+    FROM #RankingPuzzle
+)
+SELECT ID, Vals,
+       DENSE_RANK() OVER (PARTITION BY GroupID ORDER BY ID) AS RankWithinGroup
+FROM Ranked
+WHERE Vals <> 'Product';
+ 12. Employees with above average sales in their department
+
+SELECT *
+FROM #EmployeeSales e
+WHERE SalesAmount > (
+    SELECT AVG(SalesAmount)
+    FROM #EmployeeSales
+    WHERE Department = e.Department
+);
+ 13. Employees with highest sales in any month using EXISTS
+
+SELECT *
+FROM #EmployeeSales e
+WHERE EXISTS (
+    SELECT 1
+    FROM #EmployeeSales e2
+    WHERE e2.SalesMonth = e.SalesMonth AND e2.SalesYear = e.SalesYear
+    GROUP BY e2.SalesMonth, e2.SalesYear
+    HAVING MAX(e2.SalesAmount) = e.SalesAmount
+);
+ 14. Employees who made sales in every month using NOT EXISTS
+
+SELECT DISTINCT e1.EmployeeName
+FROM #EmployeeSales e1
+WHERE NOT EXISTS (
+    SELECT DISTINCT SalesMonth
+    FROM #EmployeeSales
+    WHERE SalesMonth NOT IN (
+        SELECT SalesMonth FROM #EmployeeSales e2 WHERE e2.EmployeeName = e1.EmployeeName))
+ 15. Products more expensive than avg price
+
+SELECT Name
+FROM Products
+WHERE Price > (SELECT AVG(Price) FROM Products);
+ 16. Products with stock < highest stock
+
+SELECT Name
+FROM Products
+WHERE Stock < (SELECT MAX(Stock) FROM Products);
+17. Products in same category as 'Laptop'
+
+SELECT Name
+FROM Products
+WHERE Category = (SELECT Category FROM Products WHERE Name = 'Laptop');
+ 18. Price > lowest in Electronics
+
+SELECT Name
+FROM Products
+WHERE Price > (
+    SELECT MIN(Price)
+    FROM Products
+    WHERE Category = 'Electronics'
+);
+19. Products above avg price of their category
+
+SELECT Name
+FROM Products p
+WHERE Price > (
+    SELECT AVG(Price)
+    FROM Products
+    WHERE Category = p.Category
+);
+ 20. Products ordered at least once
+
+SELECT DISTINCT p.Name
+FROM Products p
+JOIN Orders o ON p.ProductID = o.ProductID;
+ 21. Products ordered more than avg quantity
+
+SELECT p.Name
+FROM Products p
+JOIN Orders o ON p.ProductID = o.ProductID
+GROUP BY p.Name
+HAVING SUM(o.Quantity) > (
+    SELECT AVG(Quantity)
+    FROM Orders
+);
+22. Products never ordered
+
+SELECT Name
+FROM Products
+WHERE ProductID NOT IN (SELECT DISTINCT ProductID FROM Orders);
+ 23. Product with highest total quantity ordered
+
+SELECT TOP 1 p.Name, SUM(o.Quantity) AS TotalOrdered
+FROM Orders o
+JOIN Products p ON o.ProductID = p.ProductID
+GROUP BY p.Name
+ORDER BY TotalOrdered DESC;
