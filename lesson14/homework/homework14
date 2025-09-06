@@ -1,0 +1,202 @@
+
+Easy Tasks
+
+Split the Name column by a comma into two separate columns: Name and Surname.
+
+SELECT 
+  SUBSTRING_INDEX(Name, ',', 1) AS Name,
+  SUBSTRING_INDEX(Name, ',', -1) AS Surname
+FROM TestMultipleColumns;
+
+
+This splits the Name column at the comma (,), extracting the first and last parts into Name and Surname.
+
+Find strings from a table where the string itself contains the % character.
+
+SELECT *
+FROM TestPercent
+WHERE column_name LIKE '%\%%' ESCAPE '\';
+
+
+This uses LIKE with an escape character (\) to find strings containing the % symbol.
+
+Split a string based on dot (.).
+
+SELECT 
+  SUBSTRING_INDEX(column_name, '.', 1) AS part1,
+  SUBSTRING_INDEX(SUBSTRING_INDEX(column_name, '.', 2), '.', -1) AS part2,
+  SUBSTRING_INDEX(column_name, '.', -1) AS part3
+FROM Splitter;
+
+
+This splits the string into three parts based on dots (.). If there are more parts, you can adjust the logic accordingly.
+
+Replace all integers (digits) in the string with 'X'.
+
+SELECT REPLACE(REPLACE(REPLACE(column_name, '0', 'X'), '1', 'X'), '2', 'X') AS modified_string
+FROM TestTable;
+
+
+This can be repeated for all digits (0-9), replacing them with 'X'. For brevity, the query only shows replacing the first three digits; you would need a similar REPLACE for each digit from 0 to 9.
+
+Return all rows where the value in the Vals column contains more than two dots (.).
+
+SELECT *
+FROM testDots
+WHERE LENGTH(vals) - LENGTH(REPLACE(vals, '.', '')) > 2;
+
+
+This counts the number of dots (.) in the string and filters for rows with more than two dots.
+
+Count the spaces present in the string.
+
+SELECT LENGTH(column_name) - LENGTH(REPLACE(column_name, ' ', '')) AS space_count
+FROM CountSpaces;
+
+
+This calculates the difference in length between the original string and the string without spaces, effectively counting the spaces.
+
+Find employees who earn more than their managers.
+
+SELECT e.name
+FROM Employee e
+JOIN Employee m ON e.managerId = m.id
+WHERE e.salary > m.salary;
+
+
+This joins the Employee table with itself to compare the salaries of employees and their managers.
+
+Find employees who have been with the company for more than 10 years but less than 15 years.
+
+SELECT employee_id, first_name, last_name, hire_date,
+       DATEDIFF(CURDATE(), hire_date) / 365 AS years_of_service
+FROM Employees
+WHERE DATEDIFF(CURDATE(), hire_date) / 365 BETWEEN 10 AND 15;
+
+
+This calculates the number of years an employee has been with the company by dividing the number of days since the hire date by 365.
+
+Medium Tasks
+
+Separate the integer values and the character values into two different columns.
+
+SELECT 
+  REGEXP_SUBSTR(column_name, '[0-9]+') AS integers,
+  REGEXP_SUBSTR(column_name, '[A-Za-z]+') AS characters
+FROM rtcfvty34redt;
+
+
+This uses REGEXP_SUBSTR to extract the integers and characters separately from the string.
+
+Find all date IDs with a higher temperature compared to their previous (yesterdays) dates.
+
+SELECT current.id
+FROM weather current
+JOIN weather previous ON current.id = previous.id + 1
+WHERE current.temperature > previous.temperature
+
+
+This compares each days temperature with the previous days temperature (assuming IDs are sequential).
+
+Report the first login date for each player.
+
+SELECT player_id, MIN(login_date) AS first_login_date
+FROM Activity
+GROUP BY player_id;
+
+
+This query uses MIN() to find the first login date for each player.
+
+Return the third item from the list.
+
+SELECT fruits[3] AS third_item
+FROM fruits_list;
+
+
+Assuming fruits is a list-like structure, this can be used to extract the third item.
+
+Create a table where each character from the string will be converted into a row.
+
+WITH chars AS (
+    SELECT SUBSTRING('sdgfhsdgfhs@121313131', n, 1) AS char
+    FROM numbers
+    WHERE n <= LENGTH('sdgfhsdgfhs@121313131')
+)
+SELECT char
+FROM chars;
+
+
+This uses a WITH clause and a number series (you can generate a numbers table) to split each character into a row.
+
+Join two tables (p1, p2) on id, replacing p1.code with p2.code when p1.code is 0.
+
+SELECT p1.id,
+       CASE WHEN p1.code = 0 THEN p2.code ELSE p1.code END AS code
+FROM p1
+LEFT JOIN p2 ON p1.id = p2.id;
+
+
+This CASE statement replaces p1.code with p2.code when p1.code is 0.
+
+Determine the Employment Stage for each employee based on their HIRE_DATE.
+
+SELECT employee_id,
+       CASE
+           WHEN DATEDIFF(CURDATE(), hire_date) < 365 THEN 'New Hire'
+           WHEN DATEDIFF(CURDATE(), hire_date) BETWEEN 365 AND 1825 THEN 'Junior'
+           WHEN DATEDIFF(CURDATE(), hire_date) BETWEEN 1826 AND 3650 THEN 'Mid-Level'
+           WHEN DATEDIFF(CURDATE(), hire_date) BETWEEN 3651 AND 7300 THEN 'Senior'
+           ELSE 'Veteran'
+       END AS employment_stage
+FROM Employees;
+
+
+This uses CASE to determine the employment stage based on the hire date and the number of years worked.
+
+Extract the integer value that appears at the start of the string in a column named Vals.
+
+SELECT SUBSTRING(Vals, 1, LOCATE(' ', Vals) - 1) AS integer_value
+FROM GetIntegers
+WHERE Vals REGEXP '^[0-9]+';
+
+
+This extracts the leading integer from the string by using LOCATE to find the first space.
+
+Difficult Tasks
+
+Swap the first two letters of a comma-separated string.
+
+SELECT CONCAT(SUBSTRING_INDEX(Name, ',', 1), 
+              ',', 
+              SUBSTRING_INDEX(SUBSTRING_INDEX(Name, ',', -1), ' ', 1),
+              ' ', 
+              SUBSTRING_INDEX(SUBSTRING_INDEX(Name, ' ', -1), ',', 1))
+FROM MultipleVals;
+
+
+This query swaps the first two letters/words in a comma-separated string.
+
+Report the device that is first logged in for each player.
+
+SELECT player_id, device, MIN(login_date) AS first_login
+FROM Activity
+GROUP BY player_id;
+
+
+This returns the first device logged in for each player by using MIN() on the login date.
+
+Calculate the week-on-week percentage of sales per area for each financial week.
+
+WITH weekly_sales AS (
+    SELECT area, WEEK(sale_date) AS week, SUM(sales_amount) AS total_sales
+    FROM sales
+    GROUP BY area, WEEK(sale_date)),
+week_on_week AS (
+    SELECT area, week, total_sales,
+           LAG(total_sales) OVER (PARTITION BY area ORDER BY week) AS previous_week_sales
+    FROM weekly_sales
+)
+SELECT area, week, total_sales,
+       (total_sales - previous_week_sales) / previous_week_sales * 100 AS sales_percentage
+FROM week_on_week
+WHERE previous_week_sales IS NOT NULL
