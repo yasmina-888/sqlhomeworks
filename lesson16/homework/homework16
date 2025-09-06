@@ -1,0 +1,249 @@
+1. Create a numbers table using a recursive query from 1 to 1000.
+
+WITH RECURSIVE Numbers AS (
+    SELECT 1 AS Number
+    UNION ALL
+    SELECT Number + 1 FROM Numbers WHERE Number < 1000
+)
+SELECT * FROM Numbers;
+
+
+This recursive query generates a sequence of numbers from 1 to 1000.
+
+2. Write a query to find the total sales per employee using a derived table.
+
+SELECT e.EmployeeID, e.FirstName, e.LastName, COALESCE(s.TotalSales, 0) AS TotalSales
+FROM Employees e
+LEFT JOIN (
+    SELECT EmployeeID, SUM(SalesAmount) AS TotalSales
+    FROM Sales
+    GROUP BY EmployeeID
+) s ON e.EmployeeID = s.EmployeeID;
+
+
+This query calculates the total sales for each employee using a derived table for the sum of SalesAmount.
+
+3. Create a CTE to find the average salary of employees.
+
+WITH AvgSalary AS (
+    SELECT AVG(Salary) AS AverageSalary FROM Employees
+)
+SELECT * FROM AvgSalary;
+
+
+This CTE computes the average salary for all employees.
+
+4. Write a query using a derived table to find the highest sales for each product.
+
+SELECT p.ProductID, p.ProductName, COALESCE(s.MaxSales, 0) AS MaxSales
+FROM Products p
+LEFT JOIN (
+    SELECT ProductID, MAX(SalesAmount) AS MaxSales
+    FROM Sales
+    GROUP BY ProductID
+) s ON p.ProductID = s.ProductID;
+
+
+This query retrieves the highest sales for each product using a derived table.
+
+5. Beginning at 1, write a statement to double the number for each record, the max value you get should be less than 1000000.
+
+WITH Numbers AS (
+    SELECT 1 AS Number
+    UNION ALL
+    SELECT Number * 2 FROM Numbers WHERE Number < 1000000
+)
+SELECT * FROM Numbers;
+
+
+This recursive query doubles the number starting from 1, ensuring the result is less than 1,000,000.
+
+6. Use a CTE to get the names of employees who have made more than 5 sales.
+
+WITH SalesCount AS (
+    SELECT EmployeeID, COUNT(*) AS SalesMade
+    FROM Sales
+    GROUP BY EmployeeID
+)
+SELECT e.FirstName, e.LastName
+FROM Employees e
+JOIN SalesCount sc ON e.EmployeeID = sc.EmployeeID
+WHERE sc.SalesMade > 5;
+
+
+This CTE counts the sales for each employee and filters those who have made more than 5 sales.
+
+7. Write a query using a CTE to find all products with sales greater than $500.
+
+WITH SalesOver500 AS (
+    SELECT ProductID, SUM(SalesAmount) AS TotalSales
+    FROM Sales
+    GROUP BY ProductID
+    HAVING SUM(SalesAmount) > 500
+)
+SELECT p.ProductName
+FROM Products p
+JOIN SalesOver500 s ON p.ProductID = s.ProductID;
+
+
+This CTE finds products whose total sales exceed $500.
+
+8. Create a CTE to find employees with salaries above the average salary.
+
+WITH AvgSalary AS (
+    SELECT AVG(Salary) AS AverageSalary FROM Employees
+)
+SELECT e.FirstName, e.LastName, e.Salary
+FROM Employees e, AvgSalary
+WHERE e.Salary > AvgSalary.AverageSalary;
+
+
+This query uses a CTE to find employees with salaries above the average salary.
+
+Medium Tasks
+
+9. Write a query using a derived table to find the top 5 employees by the number of orders made.
+
+SELECT EmployeeID, COUNT(*) AS OrdersMade
+FROM Sales
+GROUP BY EmployeeID
+ORDER BY OrdersMade DESC
+LIMIT 5;
+
+
+This query finds the top 5 employees by the number of orders they made.
+
+10. Write a query using a derived table to find the sales per product category.
+
+SELECT p.CategoryID, COALESCE(SUM(s.SalesAmount), 0) AS SalesPerCategory
+FROM Products p
+LEFT JOIN Sales s ON p.ProductID = s.ProductID
+GROUP BY p.CategoryID;
+
+
+This query calculates the total sales per product category using a derived table.
+
+11. Write a script to return the factorial of each value next to it.
+
+WITH RECURSIVE Factorial AS (
+    SELECT Number, 1 AS Factorial
+    FROM Numbers1
+    WHERE Number = 1
+    UNION ALL
+    SELECT n.Number, n.Factorial * f.Factorial
+    FROM Numbers1 n
+    JOIN Factorial f ON n.Number = f.Number + 1
+)
+SELECT Number, Factorial FROM Factorial;
+
+
+This recursive query computes the factorial of each number from the Numbers1 table.
+
+12. This script uses recursion to split a string into rows of substrings for each character in the string.
+
+WITH RECURSIVE SplitString AS (
+    SELECT SUBSTRING(String, 1, 1) AS Char, 1 AS Position
+    FROM Example
+    WHERE Position = 1
+    UNION ALL
+    SELECT SUBSTRING(String, Position + 1, 1), Position + 1
+    FROM Example, SplitString
+    WHERE Position < LEN(String)
+)
+SELECT Char FROM SplitString;
+
+
+This recursive query splits the string in the Example table into substrings and returns each character in a row.
+
+13. Use a CTE to calculate the sales difference between the current month and the previous month.
+
+WITH MonthlySales AS (
+    SELECT EXTRACT(MONTH FROM SaleDate) AS Month, 
+           EXTRACT(YEAR FROM SaleDate) AS Year,
+           SUM(SalesAmount) AS TotalSales
+    FROM Sales
+    GROUP BY EXTRACT(MONTH FROM SaleDate), EXTRACT(YEAR FROM SaleDate)
+)
+SELECT a.Month, a.Year, a.TotalSales, 
+       a.TotalSales - COALESCE(b.TotalSales, 0) AS SalesDifference
+FROM MonthlySales a
+LEFT JOIN MonthlySales b ON a.Month = b.Month + 1 AND a.Year = b.Year;
+
+
+This CTE calculates the sales difference between the current month and the previous month.
+
+14. Create a derived table to find employees with sales over $45,000 in each quarter.
+
+SELECT e.EmployeeID, e.FirstName, e.LastName, 
+       SUM(s.SalesAmount) AS TotalSales
+FROM Sales s
+JOIN Employees e ON s.EmployeeID = e.EmployeeID
+WHERE s.SalesAmount > 45000
+GROUP BY e.EmployeeID, e.FirstName, e.LastName;
+
+
+This query calculates sales above $45,000 per employee in each quarter.
+
+Difficult Tasks
+
+15. This script uses recursion to calculate Fibonacci numbers.
+
+WITH RECURSIVE Fibonacci AS (
+    SELECT 0 AS num, 0 AS Fib
+    UNION ALL
+    SELECT 1 AS num, 1 AS Fib
+    UNION ALL
+    SELECT num + 1, Fib + (SELECT Fib FROM Fibonacci WHERE num = Fibonacci.num - 1)
+    FROM Fibonacci
+    WHERE num < 10
+)
+SELECT * FROM Fibonacci;
+
+
+This recursive query calculates Fibonacci numbers.
+
+16. Find a string where all characters are the same and the length is greater than 1.
+
+SELECT Vals 
+FROM FindSameCharacters 
+WHERE LEN(Vals) > 1 AND Vals = REPLICATE(SUBSTRING(Vals, 1, 1), LEN(Vals));
+
+
+This query finds strings where all characters are the same and the length is greater than 1.
+
+17. Create a numbers table that shows all numbers 1 through n and their order gradually increasing by the next number in the sequence.
+
+WITH RECURSIVE NumberSequence AS (
+    SELECT 1 AS Number, '1' AS Sequence
+    UNION ALL
+    SELECT Number + 1, CONCAT(Sequence, Number + 1)
+    FROM NumberSequence
+    WHERE Number < 5
+)
+SELECT * FROM NumberSequence;
+
+
+This recursive query generates a sequence where each number is appended to the sequence gradually increasing by the next number.
+
+18. Write a query using a derived table to find the employees who have made the most sales in the last 6 months.
+
+SELECT e.EmployeeID, e.FirstName, e.LastName, COUNT(s.SalesID) AS SalesCount
+FROM Sales s
+JOIN Employees e ON s.EmployeeID = e.EmployeeID
+WHERE s.SaleDate > DATEADD(MONTH, -6, GETDATE())
+GROUP BY e.EmployeeID, e.FirstName, e.LastName
+ORDER BY SalesCount DESC
+LIMIT 1;
+
+
+This query finds the employee with the most sales in the last 6 months.
+
+19. Write a T-SQL query to remove the duplicate integer values present in the string column. Additionally, remove the single integer character that appears in the string.
+
+WITH CleanedStrings AS (
+    SELECT Pawan_slug_name,
+           REPLACE(REPLACE(Pawan_slug_name, '1', ''), '2', '') AS Cleaned
+    FROM RemoveDuplicateIntsFromNames
+)
+SELECT * FROM CleanedStrings
+
