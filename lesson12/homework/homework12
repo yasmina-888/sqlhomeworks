@@ -1,0 +1,83 @@
+SELECT p.firstName, p.lastName, a.city, a.state
+FROM Person p
+LEFT JOIN Address a ON p.personId = a.personId;
+
+2. Employees Earning More Than Their Managers
+
+You need to find employees who earn more than their managers. To do this, you need to self-join the Employee table on managerId.
+
+SELECT e.name AS Employee
+FROM Employee e
+JOIN Employee m ON e.managerId = m.id
+WHERE e.salary > m.salary;
+
+3. Duplicate Emails
+
+You want to find all duplicate emails in the Person table.
+
+SELECT email
+FROM Person
+GROUP BY email
+HAVING COUNT(email) > 1;
+
+4. Delete Duplicate Emails
+
+To delete duplicate emails but keep the one with the smallest id, you can use a subquery to identify the ids to delete.
+
+DELETE FROM Person
+WHERE id NOT IN (
+    SELECT MIN(id)
+    FROM Person
+    GROUP BY email
+);
+
+5. Find Parents Who Have Only Girls
+
+You need to return the names of parents who have only girls (no boys). This involves checking that for each parent in the girls table, there are no corresponding entries in the boys table.
+
+SELECT DISTINCT g.ParentName
+FROM girls g
+LEFT JOIN boys b ON g.ParentName = b.ParentName
+WHERE b.Id IS NULL;
+
+6. Total over 50 and Least Weight
+
+You need to find the total sales amount for orders where the weight is over 50 for each customer, as well as their least weight. The Sales.Orders table and relevant columns should be referenced.
+
+SELECT customerId, 
+       SUM(totalAmount) AS totalSalesAmount, 
+       MIN(weight) AS leastWeight
+FROM Orders
+WHERE weight > 50
+GROUP BY customerId;
+
+7. Carts
+
+You need to show the items that exist in both Cart1 and Cart2, as well as the items that are exclusive to each cart.
+
+SELECT c1.Item AS "Item Cart 1", c2.Item AS "Item Cart 2"
+FROM Cart1 c1
+FULL OUTER JOIN Cart2 c2 ON c1.Item = c2.Item;
+
+8. Customers Who Never Order
+
+To find customers who never placed an order, you need to use a LEFT JOIN between the Customers and Orders tables and filter for customers who have no matching orders.
+
+SELECT c.name AS Customers
+FROM Customers c
+LEFT JOIN Orders o ON c.id = o.customerId
+WHERE o.id IS NULL;
+
+9. Students and Examinations
+
+You need to find the number of times each student attended each exam, which involves counting occurrences in the Examinations table.
+
+SELECT s.student_id, 
+       s.student_name, 
+       sub.subject_name, 
+       COUNT(e.subject_name) AS attended_exams
+FROM Students s
+CROSS JOIN Subjects sub
+LEFT JOIN Examinations e ON s.student_id = e.student_id AND sub.subject_name = e.subject_name
+GROUP BY s.student_id, s.student_name, sub.subject_name
+ORDER BY s.student_id, sub.subject_name
