@@ -1,0 +1,127 @@
+1. Report of all distributors and their sales by region (Zero-dollar value for regions with no sales)
+WITH Regions AS (
+    SELECT DISTINCT Region FROM #RegionSales),
+Distributors AS (
+    SELECT DISTINCT Distributor FROM #RegionSales)
+SELECT
+    r.Region,
+    d.Distributor,
+    ISNULL(rs.Sales, 0) AS Sales
+FROM
+    Regions r
+CROSS JOIN Distributors d
+LEFT JOIN #RegionSales rs ON r.Region = rs.Region AND d.Distributor = rs.Distributor
+ORDER BY r.Region, d.Distributor;
+
+2. Find managers with at least five direct reports
+SELECT e.name
+FROM Employee e
+JOIN (
+    SELECT managerId
+    FROM Employee
+    GROUP BY managerId
+    HAVING COUNT(id) >= 5
+) sub ON e.id = sub.managerId;
+
+3. Get names of products with at least 100 units ordered in February 2020
+SELECT p.product_name, SUM(o.unit) AS total_units
+FROM Products p
+JOIN Orders o ON p.product_id = o.product_id
+WHERE o.order_date BETWEEN '2020-02-01' AND '2020-02-29'
+GROUP BY p.product_name
+HAVING SUM(o.unit) >= 100;
+
+4. Vendor with the most orders for each customer
+WITH VendorOrders AS (
+    SELECT CustomerID, Vendor, COUNT(*) AS order_count
+    FROM Orders
+    GROUP BY CustomerID, Vendor
+)
+, MaxOrders AS (
+    SELECT CustomerID, MAX(order_count) AS max_orders
+    FROM VendorOrders
+    GROUP BY CustomerID
+)
+SELECT vo.CustomerID, vo.Vendor
+FROM VendorOrders vo
+JOIN MaxOrders mo ON vo.CustomerID = mo.CustomerID AND vo.order_count = mo.max_orders;
+
+5. Check if a number is prime
+DECLARE @Check_Prime INT = 91;
+DECLARE @IsPrime BIT = 1; -- Assume prime initially
+
+-- Check for divisibility by numbers from 2 to sqrt(@Check_Prime)
+DECLARE @i INT = 2;
+WHILE @i <= SQRT(@Check_Prime)
+BEGIN
+    IF @Check_Prime % @i = 0
+    BEGIN
+        SET @IsPrime = 0; -- Not prime
+        BREAK;
+    END
+    SET @i = @i + 1;
+END
+
+IF @IsPrime = 1
+    PRINT 'This number is prime';
+ELSE
+    PRINT 'This number is not prime';
+
+6. Number of locations, most signals sent, and total signals per device
+WITH LocationCount AS (
+    SELECT Device_id, COUNT(DISTINCT Locations) AS no_of_location
+    FROM Device
+    GROUP BY Device_id
+),
+MaxLocation AS (
+    SELECT Device_id, Locations AS max_signal_location, COUNT(*) AS no_of_signals
+    FROM Device
+    GROUP BY Device_id, Locations
+    HAVING COUNT(*) = (
+        SELECT MAX(counts) 
+        FROM (SELECT COUNT(*) AS counts FROM Device GROUP BY Locations) AS sub)
+)
+SELECT lc.Device_id, lc.no_of_location, ml.max_signal_location, ml.no_of_signals
+FROM LocationCount lc
+JOIN MaxLocation ml ON lc.Device_id = ml.Device_id;
+
+7. Employees earning more than the average salary in their department
+SELECT EmpID, EmpName, Salary
+FROM Employee e
+WHERE Salary > (
+    SELECT AVG(Salary)
+    FROM Employee
+    WHERE DeptID = e.DeptID
+);
+
+8. Calculate total winnings from the lottery ticket numbers
+SELECT SUM(CASE
+                WHEN COUNT(*) = 3 THEN 100 -- Ticket has all 3 winning numbers
+                WHEN COUNT(*) > 0 THEN 10 -- Ticket has some winning numbers
+                ELSE 0
+            END) AS Total_Winnings
+FROM Tickets t
+JOIN Numbers n ON t.Number = n.Number
+GROUP BY t.TicketID;
+
+9. Total number of users and the total amount spent using mobile, desktop, and both
+WITH MobileDesktop AS (
+    SELECT User_id, Spend_date, Platform, SUM(Amount) AS Total_Amount
+    FROM Spending
+    GROUP BY User_id, Spend_date, Platform)
+SELECT 
+    sd.Spend_date, 
+    sd.Platform, 
+    SUM(sd.Total_Amount) AS Total_Amount, 
+    COUNT(DISTINCT sd.User_id) AS Total_users
+FROM MobileDesktop sd
+GROUP BY sd.Spend_date, sd.Platform
+ORDER BY sd.Spend_date, sd.Platform;
+
+10. De-group the grouped data
+WITH Numbers AS (
+    SELECT Product, Quantity
+    FROM Grouped
+    CROSS APPLY (SELECT TOP (Quantity) 1 AS Num FROM master.dbo.spt_values) AS x)
+SELECT Product, 1 AS Quantity
+FROM Numbers
