@@ -1,0 +1,142 @@
+
+ 1. Assign a row number based on SaleDate
+
+SELECT *, ROW_NUMBER() OVER (ORDER BY SaleDate) AS RowNum
+FROM ProductSales;
+ 2. Rank products based on total quantity sold (no gaps in ranks)
+
+SELECT ProductName, SUM(Quantity) AS TotalQty,
+       DENSE_RANK() OVER (ORDER BY SUM(Quantity) DESC) AS ProductRank
+FROM ProductSales
+GROUP BY ProductName;
+ 3. Top sale per customer by SaleAmount
+
+SELECT *
+FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY CustomerID ORDER BY SaleAmount DESC) AS rn
+    FROM ProductSales
+) 
+WHERE rn = 1;
+ 4. Current and next sale amount by SaleDate
+
+SELECT 
+    SaleID, ProductName, SaleDate, SaleAmount,
+    LEAD(SaleAmount) OVER (ORDER BY SaleDate) AS NextSaleAmount
+FROM ProductSales;
+ 5. Current and previous sale amount by SaleDate
+
+SELECT 
+    SaleID, ProductName, SaleDate, SaleAmount,
+    LAG(SaleAmount) OVER (ORDER BY SaleDate) AS PrevSaleAmount
+FROM ProductSales;
+ 6. Sales amounts greater than previous
+
+SELECT *
+FROM (
+    SELECT *, LAG(SaleAmount) OVER (ORDER BY SaleDate) AS PrevSale
+    FROM ProductSales
+) t
+WHERE SaleAmount > PrevSale;
+ 7. Difference in sale amount from previous sale per product
+
+SELECT *,
+    SaleAmount - LAG(SaleAmount) OVER (PARTITION BY ProductName ORDER BY SaleDate) AS DiffFromPrev
+FROM ProductSales;
+ 8. % Change from current to next sale amount
+
+SELECT *,
+    ROUND(
+        100.0 * (LEAD(SaleAmount) OVER (ORDER BY SaleDate) - SaleAmount) / SaleAmount, 2
+    ) AS PercentChangeToNext
+FROM ProductSales;
+ 9. Ratio of current sale to previous (same product)
+
+SELECT *,
+    ROUND(
+        SaleAmount * 1.0 / NULLIF(LAG(SaleAmount) OVER (PARTITION BY ProductName ORDER BY SaleDate), 0), 2
+    ) AS RatioToPrev
+FROM ProductSales;
+10. Difference from the first sale of that product
+
+SELECT *,
+    SaleAmount - FIRST_VALUE(SaleAmount) OVER (PARTITION BY ProductName ORDER BY SaleDate) AS DiffFromFirst
+FROM ProductSales;
+ 11. Sales that are continuously increasing for a product
+
+SELECT *
+FROM (
+    SELECT *,
+        LAG(SaleAmount) OVER (PARTITION BY ProductName ORDER BY SaleDate) AS PrevAmt
+    FROM ProductSales
+) 
+WHERE SaleAmount > PrevAmt;
+ 12. Running total (closing balance) of sales
+
+SELECT *,
+    SUM(SaleAmount) OVER (ORDER BY SaleDate ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS RunningTotal
+FROM ProductSales;
+13. 3-sale moving average of sale amount
+
+SELECT *,
+    ROUND(AVG(SaleAmount) OVER (ORDER BY SaleDate ROWS BETWEEN 2 PRECEDING AND CURRENT ROW), 2) AS MovingAvg_3
+FROM ProductSales;
+ 14. Difference from average sale amount
+
+SELECT *,
+    SaleAmount - (SELECT AVG(SaleAmount) FROM ProductSales) AS DiffFromAvg
+FROM ProductSales;
+🔹 Employees1 Queries
+1. Employees with same salary rank (across all)
+
+SELECT *,
+       DENSE_RANK() OVER (ORDER BY Salary DESC) AS SalaryRank
+FROM Employees1;
+ 2. Top 2 highest salaries in each department
+
+SELECT *
+FROM (
+    SELECT *, DENSE_RANK() OVER (PARTITION BY Department ORDER BY Salary DESC) AS DeptRank
+    FROM Employees1
+) t
+WHERE DeptRank <= 2;
+ 3. Lowest-paid employee in each department
+
+SELECT *
+FROM (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY Department ORDER BY Salary ASC) AS rn
+    FROM Employees1
+) 
+WHERE rn = 1;
+ 4. Running total of salaries in each department
+
+SELECT *,
+    SUM(Salary) OVER (PARTITION BY Department ORDER BY HireDate) AS RunningTotalSalary
+FROM Employees1;
+ 5. Total salary of each department (without GROUP BY)
+
+SELECT *,
+    SUM(Salary) OVER (PARTITION BY Department) AS DeptTotalSalary
+FROM Employees1;
+ 6. Average salary per department (without GROUP BY)
+
+SELECT *,
+    AVG(Salary) OVER (PARTITION BY Department) AS DeptAvgSalary
+FROM Employees1;
+ 7. Difference from department average
+
+SELECT *,
+    Salary - AVG(Salary) OVER (PARTITION BY Department) AS DiffFromDeptAvg
+FROM Employees1;
+ 8. Moving average salary (current, prev, next)
+
+SELECT *,
+    ROUND(AVG(Salary) OVER (ORDER BY HireDate ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING), 2) AS MovingAvgSalary
+FROM Employees1;
+ 9. Sum of salaries for the last 3 hired employees
+
+SELECT SUM(Salary) AS TotalLast3Hired
+FROM (
+    SELECT Salary
+    FROM Employees1
+    ORDER BY HireDate DESC
+    OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
+) 
